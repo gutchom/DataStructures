@@ -1,46 +1,29 @@
-export class LinkedListNode<T> {
+export class Node<T> {
   value: T;
-  next?: LinkedListNode<T>;
+  ref?: Node<T>;
 
-  get tail(): LinkedListNode<T> {return this.next ? this.tail : this;}
-  set tail(node: LinkedListNode<T>) {this.tail.next = node;}
-  get head(): LinkedListNode<T> {return this;}
-  set head(node: LinkedListNode<T>) {node.next = this;}
+  get tail(): Node<T> {
+    return this.ref ? this.tail : this;
+  }
 
-  constructor(value: T, next?: LinkedListNode<T>) {
+  constructor(value: T, next?: Node<T>) {
     this.value = value;
-    this.next = next;
+    this.ref = next;
   }
 
-  // TODO: テスト書く
-  remove(target: LinkedListNode<T>) {
-    this.findPrevNode(target).next = target.next;
-    target.next = undefined;
+  prepend(value: T): Node<T> {
+    return new Node(value, this);
   }
 
-  // TODO: テスト書く
-  insertBefore(target: LinkedListNode<T>) {
-    const prev = this.findPrevNode(target);
-    target.next = prev;
-    target.next = prev.next?.next;
-  }
-
-  // TODO: テスト書く
-  insertAfter(target: LinkedListNode<T>) {
-    const prev = this.findPrevNode(target);
-    target.next = prev.next?.next;
-    prev.next = target;
-  }
-
-  findPrevNode(target: LinkedListNode<T>, current: LinkedListNode<T> = this.head): LinkedListNode<T> {
-    return current.next === target ? current : this.findPrevNode(target, current.next);
+  append(value: T): Node<T> {
+    return this.tail.ref = new Node(value);
   }
 
   // 初めてgenerator functionを使ったけどこれは便利ですね。
-  *toArray(node: LinkedListNode<T> = this): Iterable<T> {
+  *toArray(node: Node<T> = this): Iterable<T> {
     yield node.value;
-    if (node.next) {
-      yield* this.toArray(node.next);
+    if (node.ref) {
+      yield* this.toArray(node.ref);
     }
   }
 
@@ -49,17 +32,41 @@ export class LinkedListNode<T> {
 }
 
 export default class LinkedList<T> {
-  head?: LinkedListNode<T>;
+  head?: Node<T>;
 
   constructor(...items: T[]) {
     for (const value of items) {
-      this.head = new LinkedListNode(value, this.head);
+      this.head = new Node(value, this.head);
     }
   }
 
-  // TODO: テスト書く
+  remove(target: Node<T>) {
+  }
+
+  insertBefore(target: Node<T>) {
+  }
+
+  insertAfter(target: Node<T>) {
+  }
+
   concat(list: LinkedList<T>): LinkedList<T> {
-    this.head ? (this.head.tail.next = list.head) : list.head;
+    this.head ? (this.head.tail.ref = list.head) : list.head;
+    return this;
+  }
+
+  reverse(): LinkedList<T> {
+    if (!this.head) {
+      return this;
+    }
+    this.head = (function loop(current?: Node<T>, prev?: Node<T>): Node<T> {
+      if (current) {
+        const ref = current.ref;
+        current.ref = prev;
+        return loop(ref, current);
+      } else {
+        return prev as Node<T>;
+      }
+    })(this.head, undefined);
     return this;
   }
 
